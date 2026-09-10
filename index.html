@@ -177,6 +177,7 @@
 
   <div class="controls">
     <div class="search-box"><input type="text" id="searchInput" placeholder="Search by team..."></div>
+    <select id="networkFilter" aria-label="Filter by network"><option value="all">All Networks</option></select>
   </div>
 
   <table>
@@ -242,7 +243,7 @@ let DATA = [
   { game: "Coastal Carolina vs. West Virginia", date: "2026-09-05", time: "12:00 p.m. ET", network: "TNT", viewers: 0.48 },
   { game: "Oklahoma State vs. Tulsa", date: "2026-09-05", time: "3:45 p.m. ET", network: "ESPNU", viewers: 0.45 },
   { game: "UNLV vs. Hawaii", date: "2026-09-05", time: "10 p.m. ET", network: "CW", viewers: 0.42 },
-  { game: "UMASS vs. Rutgers", date: "2026-09-03", time: "6 p.m. ET", network: "BTN", viewers: 0.37 },
+  { game: "UMass vs. Rutgers", date: "2026-09-03", time: "6 p.m. ET", network: "BTN", viewers: 0.37 },
   { game: "Indiana State vs. Purdue", date: "2026-09-04", time: "7 p.m. ET", network: "BTN", viewers: 0.34 },
   { game: "Abilene Christian vs. Texas Tech", date: "2026-09-05", time: "7 p.m. ET", network: "FS1", viewers: 0.30 },
   { game: "UAB vs. Illinois", date: "2026-09-03", time: "9:20 p.m. ET", network: "BTN", viewers: 0.25 },
@@ -255,10 +256,24 @@ let DATA = [
   { game: "Central Michigan vs. New Mexico", date: "2026-09-05", time: "10:20 p.m. ET", network: "FS1", viewers: 0.09 }
 ];
 let sortState = { key: "viewers", dir: "desc" };
-let filters = { search: "" };
+let filters = { search: "", network: "all" };
 
 function getFiltered() {
-  return DATA.filter(d => d.game.toLowerCase().includes(filters.search.toLowerCase()));
+  return DATA.filter(d => {
+    const matchesSearch = d.game.toLowerCase().includes(filters.search.toLowerCase());
+    const matchesNetwork = filters.network === 'all' || d.network === filters.network;
+    return matchesSearch && matchesNetwork;
+  });
+}
+
+function populateNetworkFilter() {
+  const sel = document.getElementById('networkFilter');
+  const prev = sel.value;
+  sel.innerHTML = '<option value="all">All Networks</option>';
+  [...new Set(DATA.map(d => d.network))].filter(Boolean).sort().forEach(n => {
+    const opt = document.createElement('option'); opt.value = n; opt.textContent = n; sel.appendChild(opt);
+  });
+  sel.value = [...sel.options].some(o => o.value === prev) ? prev : 'all';
 }
 
 function getSorted(rows) {
@@ -357,6 +372,7 @@ document.querySelectorAll('th[data-sort]').forEach(th => {
 });
 
 document.getElementById('searchInput').addEventListener('input', e => { filters.search = e.target.value; render(); });
+document.getElementById('networkFilter').addEventListener('change', e => { filters.network = e.target.value; render(); });
 
 const themeToggle = document.getElementById('themeToggle');
 const themeIcon = document.getElementById('themeIcon');
@@ -369,6 +385,7 @@ themeToggle.addEventListener('click', () => {
   themeLabel.textContent = isDark ? 'Light' : 'Dark';
 });
 
+populateNetworkFilter();
 render();
 </script>
 </body>
